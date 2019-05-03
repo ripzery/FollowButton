@@ -14,12 +14,8 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     //    val fontPath: String = context.getString(R.string.custom_bold_font)
     private val expandWidth = 16 // dp
-    private val textPadding = 8 // dp
     private val textNormal = 14
-    private val textSmall = 10
-
-    private var mUnfollowedWidth: Int = 0
-    private var mFollowedWidth: Int = 0
+    private val textSmall = 12
 
     /* Public APIs*/
     /* ======================================================================================== */
@@ -41,7 +37,7 @@ class FollowButton : AppCompatButton, View.OnClickListener {
     private var mHeight: Int = 0
     private lateinit var mBackgroundDrawable: Drawable
     private var mTextColor: Int = 0
-    private var mTextSize: Int = 0
+    private var mPadding: Int = 0
     private var mText: String = ""
 
     constructor(context: Context) : super(context) {
@@ -62,12 +58,24 @@ class FollowButton : AppCompatButton, View.OnClickListener {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (followed) {
-            mFollowedWidth = MeasureSpec.getSize(widthMeasureSpec)
-        } else {
-            mUnfollowedWidth = MeasureSpec.getSize(widthMeasureSpec)
-        }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val layoutWidthMode = MeasureSpec.getMode(widthMeasureSpec)
+        val layoutHeightMode = MeasureSpec.getMode(heightMeasureSpec)
+
+        mWidth = when (layoutWidthMode) {
+            MeasureSpec.AT_MOST -> Math.min(mWidth, measuredWidth)
+            MeasureSpec.UNSPECIFIED -> mWidth
+            else -> measuredWidth
+        }
+
+        mHeight = when (layoutHeightMode) {
+            MeasureSpec.AT_MOST -> Math.min(mHeight, measuredHeight)
+            MeasureSpec.UNSPECIFIED -> mHeight
+            else -> measuredHeight
+        }
+
+        // Update size here
+        setMeasuredDimension(mWidth, mHeight)
     }
 
     private fun initWithAttrs(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
@@ -122,20 +130,24 @@ class FollowButton : AppCompatButton, View.OnClickListener {
     /* Internal mechanism */
 
     private fun resolveWidth(mFollowed: Boolean) {
+        when (mFollowed) {
+            true -> {
+                mWidth = 300.px
 
-//        mWidth = when (mFollowed) {
-//            true -> mFollowedWidth
-//            false -> mUnfollowedWidth
-//        }
-        mWidth = when (mFollowed) {
-            true -> paint.measureText(text.toString()).toInt() + expandWidth.px
-            else -> paint.measureText(text.toString()).toInt()
+                if (paddingLeft != 0 || paddingRight != 0) return
+                mPadding = 32.px
+            }
+            false -> {
+                mWidth = 240.px
+
+                if (paddingLeft != 0 || paddingRight != 0) return
+                mPadding = 16.px
+            }
         }
-        log("width", mWidth.toString())
     }
 
     private fun resolveHeight(mSize: Int) {
-//        mHeight = mSize
+        mHeight = 80.px
     }
 
     private fun resolveBackgroundColor(mFollowed: Boolean) {
@@ -163,7 +175,7 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         setText(mText)
         setTextColor(mTextColor)
         setBackground(mBackgroundDrawable)
-        setPadding(textPadding + mWidth, 0, textPadding + mWidth, 0)
+        setPadding(mPadding, 0, mPadding, 0)
 
         val textSize = when (size) {
             1 -> textSmall
@@ -171,6 +183,8 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         }
 
         setTextSize(textSize.toFloat())
+
+        requestLayout()
     }
 
     /* Debugging purpose. TODO: Remove when works */
