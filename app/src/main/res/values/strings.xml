@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FollowButton</string>
+    <string name="button_live_call_subscribe">Follow</string>
+    <string name="button_live_call_subscribed">✓ Following</string>
+</resources>
