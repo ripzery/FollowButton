@@ -13,9 +13,16 @@ import kotlin.reflect.KProperty
 class FollowButton : AppCompatButton, View.OnClickListener {
 
     //    val fontPath: String = context.getString(R.string.custom_bold_font)
-    private val expandWidth = 16 // dp
-    private val textNormal = 14
-    private val textSmall = 12
+    private val widthNormal = 240.px
+    private val widthSmall = 80.px
+    private val heightNormal = 40.px
+    private val heightSmall = 20.px
+    private val padding = 16.px
+    private val paddingSmall = 4.px
+    private val paddingExpanded = 32.px
+    private val paddingSmallExpanded = 16.px
+    private val textNormal = 12
+    private val textSmall = 7
 
     /* Public APIs*/
     /* ======================================================================================== */
@@ -42,19 +49,43 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     constructor(context: Context) : super(context) {
         initTypeFace()
-        setOnClickListener(this)
+        init()
     }
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         initWithAttrs(attrs, 0, 0)
         initTypeFace()
-        setOnClickListener(this)
+        init()
     }
 
     constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {
         initWithAttrs(attrs, defStyle, 0)
         initTypeFace()
+        init()
+    }
+
+    private fun initWithAttrs(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+        val typed = context.theme.obtainStyledAttributes(attrs, R.styleable.FollowButton, defStyleAttr, defStyleRes)
+
+        try {
+            expandable = typed.getBoolean(R.styleable.FollowButton_expandable, expandable)
+            followed = typed.getBoolean(R.styleable.FollowButton_followed, followed)
+            size = typed.getInt(R.styleable.FollowButton_size, size)
+        } finally {
+            typed.recycle()
+        }
+    }
+
+    private fun initTypeFace() {
+//        typeface = Typeface.createFromAsset(context.assets, fontPath)
+    }
+
+    private fun init() {
         setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        followed = !followed
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -78,26 +109,6 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         setMeasuredDimension(mWidth, mHeight)
     }
 
-    private fun initWithAttrs(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
-        val typed = context.theme.obtainStyledAttributes(attrs, R.styleable.FollowButton, defStyleAttr, defStyleRes)
-
-        try {
-            expandable = typed.getBoolean(R.styleable.FollowButton_expandable, expandable)
-            followed = typed.getBoolean(R.styleable.FollowButton_followed, followed)
-            size = typed.getInt(R.styleable.FollowButton_size, size)
-        } finally {
-            typed.recycle()
-        }
-    }
-
-    private fun initTypeFace() {
-//        typeface = Typeface.createFromAsset(context.assets, fontPath)
-    }
-
-    override fun onClick(v: View?) {
-        followed = !followed
-    }
-
     /* Property-observed functions */
 
     private fun onExpandableChanges(prop: KProperty<*>, from: Boolean, to: Boolean) {
@@ -108,7 +119,7 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         log("followed", to.toString())
 
         if (expandable) {
-            resolveWidth(to)
+            resolveWidth(expandable, to, size)
         }
 
         resolveBackgroundColor(to)
@@ -121,7 +132,25 @@ class FollowButton : AppCompatButton, View.OnClickListener {
     private fun onSizeChanges(prop: KProperty<*>, from: Int, to: Int) {
         log("size", to.toString())
 
-        resolveWidth(followed)
+        when (to) {
+            1 -> {
+                minHeight = heightSmall
+                minimumHeight = heightSmall
+                minWidth = widthSmall
+                minimumWidth = widthSmall
+            }
+            else -> {
+                minHeight = suggestedMinimumHeight
+                minimumHeight = suggestedMinimumHeight
+
+                if (expandable) {
+                    minWidth = suggestedMinimumWidth
+                    minimumWidth = suggestedMinimumWidth
+                }
+            }
+        }
+
+        resolveWidth(expandable, followed, to)
         resolveHeight(height)
 
         render()
@@ -129,25 +158,32 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     /* Internal mechanism */
 
-    private fun resolveWidth(mFollowed: Boolean) {
-        when (mFollowed) {
-            true -> {
-                mWidth = 300.px
-
-                if (paddingLeft != 0 || paddingRight != 0) return
-                mPadding = 32.px
+    private fun resolveWidth(mExpandable: Boolean, mFollowed: Boolean, mSize: Int) {
+        mWidth = getWidthSize(mSize)
+        when {
+            mFollowed && mSize == 0 -> {
+                mPadding = paddingExpanded
             }
-            false -> {
-                mWidth = 240.px
-
-                if (paddingLeft != 0 || paddingRight != 0) return
-                mPadding = 16.px
+            mFollowed && mSize == 1 -> {
+                mPadding = paddingSmallExpanded
+            }
+            !mFollowed && mSize == 0 -> {
+                mPadding = if (mExpandable)
+                    padding
+                else
+                    paddingExpanded
+            }
+            !mFollowed && mSize == 1 -> {
+                mPadding = if (mExpandable)
+                    paddingSmall
+                else
+                    paddingSmallExpanded
             }
         }
     }
 
     private fun resolveHeight(mSize: Int) {
-        mHeight = 80.px
+        mHeight = getHeightSize(mSize)
     }
 
     private fun resolveBackgroundColor(mFollowed: Boolean) {
@@ -185,6 +221,20 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         setTextSize(textSize.toFloat())
 
         requestLayout()
+    }
+
+    private fun getWidthSize(mSize: Int): Int {
+        return when (mSize) {
+            1 -> widthSmall
+            else -> widthNormal
+        }
+    }
+
+    private fun getHeightSize(mSize: Int): Int {
+        return when (mSize) {
+            1 -> heightSmall
+            else -> heightNormal
+        }
     }
 
     /* Debugging purpose. TODO: Remove when works */
