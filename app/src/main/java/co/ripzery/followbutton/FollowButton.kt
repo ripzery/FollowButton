@@ -14,21 +14,18 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     //    val fontPath: String = context.getString(R.string.custom_bold_font)
     private val widthNormal = 240.px
-    private val widthSmall = 80.px
+    private val widthSmall = 100.px
     private val heightNormal = 40.px
-    private val heightSmall = 20.px
+    private val heightSmall = 24.px
     private val padding = 16.px
     private val paddingSmall = 4.px
     private val paddingExpanded = 32.px
     private val paddingSmallExpanded = 16.px
     private val textNormal = 12
-    private val textSmall = 7
+    private val textSmall = 8
 
     /* Public APIs*/
     /* ======================================================================================== */
-
-    // A boolean to specify whether the button should expands, when followed is true
-    var expandable: Boolean by Delegates.observable(true, this::onExpandableChanges)
 
     // A boolean to specify whether the user is followed to render the style properly
     var followed: Boolean by Delegates.observable(false, this::onFollowedChanges)
@@ -68,7 +65,6 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         val typed = context.theme.obtainStyledAttributes(attrs, R.styleable.FollowButton, defStyleAttr, defStyleRes)
 
         try {
-            expandable = typed.getBoolean(R.styleable.FollowButton_expandable, expandable)
             followed = typed.getBoolean(R.styleable.FollowButton_followed, followed)
             size = typed.getInt(R.styleable.FollowButton_size, size)
         } finally {
@@ -105,23 +101,15 @@ class FollowButton : AppCompatButton, View.OnClickListener {
             else -> measuredHeight
         }
 
-        // Update size here
         setMeasuredDimension(mWidth, mHeight)
     }
 
     /* Property-observed functions */
 
-    private fun onExpandableChanges(prop: KProperty<*>, from: Boolean, to: Boolean) {
-        log("expandable", to.toString())
-    }
-
     private fun onFollowedChanges(prop: KProperty<*>, from: Boolean, to: Boolean) {
         log("followed", to.toString())
 
-        if (expandable) {
-            resolveWidth(expandable, to, size)
-        }
-
+        resolveWidth(true, to, size)
         resolveBackgroundColor(to)
         resolveTextColor(to)
         resolveText(to)
@@ -142,15 +130,12 @@ class FollowButton : AppCompatButton, View.OnClickListener {
             else -> {
                 minHeight = suggestedMinimumHeight
                 minimumHeight = suggestedMinimumHeight
-
-                if (expandable) {
-                    minWidth = suggestedMinimumWidth
-                    minimumWidth = suggestedMinimumWidth
-                }
+                minWidth = suggestedMinimumWidth
+                minimumWidth = suggestedMinimumWidth
             }
         }
 
-        resolveWidth(expandable, followed, to)
+        resolveWidth(true, followed, to)
         resolveHeight(height)
 
         render()
@@ -160,25 +145,12 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     private fun resolveWidth(mExpandable: Boolean, mFollowed: Boolean, mSize: Int) {
         mWidth = getWidthSize(mSize)
-        when {
-            mFollowed && mSize == 0 -> {
-                mPadding = paddingExpanded
-            }
-            mFollowed && mSize == 1 -> {
-                mPadding = paddingSmallExpanded
-            }
-            !mFollowed && mSize == 0 -> {
-                mPadding = if (mExpandable)
-                    padding
-                else
-                    paddingExpanded
-            }
-            !mFollowed && mSize == 1 -> {
-                mPadding = if (mExpandable)
-                    paddingSmall
-                else
-                    paddingSmallExpanded
-            }
+
+        mPadding = when {
+            mFollowed && mSize == 0 -> paddingExpanded
+            mFollowed && mSize == 1 -> paddingSmallExpanded
+            !mFollowed && mSize == 0 -> padding
+            else -> paddingSmall
         }
     }
 

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="FollowButton">
-        <!-- A boolean to specify whether the button should expands, when followed is true -->
-        <attr name="expandable" format="boolean"/>
-
         <!-- A boolean to specify whether the user is followed to render the style properly -->
         <attr name="followed" format="boolean"/>
 
