@@ -10,39 +10,52 @@ import android.view.View
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
+/**
+ * I hate the nested layout. I hate the inconsistency button properties.
+ * So instead of doing a 2-minutes nested layout, I want to spend my too much time by doing a 2-hours custom view.
+ * Most importantly, it sparks joy.
+ */
 class FollowButton : AppCompatButton, View.OnClickListener {
 
+    /* PUBLIC APIs
+    * `followed` and `size` are the only two properties you can control, but normally you just don't need to.
+    */
+
+    /* A boolean to specify whether the user is followed to render the style properly */
+    var followed: Boolean by Delegates.observable(false, this::onFollowedChanged)
+
+    /* An option to specify size of the button. The available options are: small, normal. */
+    var size: Int by Delegates.observable(0, this::onSizeChanged)
+
+    /* INTERNAL WORKS. DON'T GET YOUR EYES DIRTY. */
+
     //    val fontPath: String = context.getString(R.string.custom_bold_font)
-    private val widthNormal = 240.px
-    private val widthSmall = 100.px
-    private val heightNormal = 40.px
-    private val heightSmall = 24.px
-    private val padding = 16.px
-    private val paddingSmall = 4.px
-    private val paddingExpanded = 32.px
-    private val paddingSmallExpanded = 16.px
-    private val textNormal = 12
-    private val textSmall = 8
-
-    /* Public APIs*/
-    /* ======================================================================================== */
-
-    // A boolean to specify whether the user is followed to render the style properly
-    var followed: Boolean by Delegates.observable(false, this::onFollowedChanges)
-
-    // An option to specify size of the button. The available options are: small, normal.
-    // 0 = normal, 1 = small
-    var size: Int by Delegates.observable(0, this::onSizeChanges)
-
-    /* Private APIs */
-    /* ======================================================================================== */
-
     private var mWidth: Int = 0
     private var mHeight: Int = 0
     private lateinit var mBackgroundDrawable: Drawable
     private var mTextColor: Int = 0
     private var mPadding: Int = 0
     private var mText: String = ""
+
+    companion object {
+        // Size
+        const val WIDTH_NORMAL = 240
+        const val WIDTH_SMALL = 100
+        const val HEIGHT_NORMAL = 40
+        const val HEIGHT_SMALL = 24
+        const val PADDING = 16
+        const val PADDING_SMALL = 4
+        const val PADDING_EXPANDED = 32
+        const val PADDING_SMALL_EXPANDED = 16
+        const val TEXT_NORMAL = 12
+        const val TEXT_SMALL = 8
+
+        // Mode
+        const val SIZE_NORMAL = 0
+        const val SIZE_SMALL = 1
+
+        const val DEBUG = false
+    }
 
     constructor(context: Context) : super(context) {
         initTypeFace()
@@ -105,11 +118,10 @@ class FollowButton : AppCompatButton, View.OnClickListener {
     }
 
     /* Property-observed functions */
-
-    private fun onFollowedChanges(prop: KProperty<*>, from: Boolean, to: Boolean) {
+    private fun onFollowedChanged(prop: KProperty<*>, from: Boolean, to: Boolean) {
         log("followed", to.toString())
 
-        resolveWidth(true, to, size)
+        resolveWidth(to, size)
         resolveBackgroundColor(to)
         resolveTextColor(to)
         resolveText(to)
@@ -117,15 +129,15 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         render()
     }
 
-    private fun onSizeChanges(prop: KProperty<*>, from: Int, to: Int) {
+    private fun onSizeChanged(prop: KProperty<*>, from: Int, to: Int) {
         log("size", to.toString())
 
         when (to) {
-            1 -> {
-                minHeight = heightSmall
-                minimumHeight = heightSmall
-                minWidth = widthSmall
-                minimumWidth = widthSmall
+            SIZE_SMALL -> {
+                minHeight = HEIGHT_SMALL
+                minimumHeight = HEIGHT_SMALL
+                minWidth = WIDTH_SMALL
+                minimumWidth = WIDTH_SMALL
             }
             else -> {
                 minHeight = suggestedMinimumHeight
@@ -135,7 +147,7 @@ class FollowButton : AppCompatButton, View.OnClickListener {
             }
         }
 
-        resolveWidth(true, followed, to)
+        resolveWidth(followed, to)
         resolveHeight(height)
 
         render()
@@ -143,14 +155,14 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     /* Internal mechanism */
 
-    private fun resolveWidth(mExpandable: Boolean, mFollowed: Boolean, mSize: Int) {
+    private fun resolveWidth(mFollowed: Boolean, mSize: Int) {
         mWidth = getWidthSize(mSize)
 
         mPadding = when {
-            mFollowed && mSize == 0 -> paddingExpanded
-            mFollowed && mSize == 1 -> paddingSmallExpanded
-            !mFollowed && mSize == 0 -> padding
-            else -> paddingSmall
+            mFollowed && mSize == 0 -> PADDING_EXPANDED
+            mFollowed && mSize == 1 -> PADDING_SMALL_EXPANDED
+            !mFollowed && mSize == 0 -> PADDING
+            else -> PADDING_SMALL
         }
     }
 
@@ -158,10 +170,12 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         mHeight = getHeightSize(mSize)
     }
 
+    // COMPILER, YOU'RE TALKING NONSENSE.
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     private fun resolveBackgroundColor(mFollowed: Boolean) {
         mBackgroundDrawable = when (mFollowed) {
-            true -> context.getDrawable(R.drawable.bg_rounded_solid_aqua) ?: return
-            false -> context.getDrawable(R.drawable.bg_rounded_stroke_aqua) ?: return
+            true -> context.getDrawable(R.drawable.bg_rounded_solid_aqua)
+            false -> context.getDrawable(R.drawable.bg_rounded_stroke_aqua)
         }
     }
 
@@ -181,36 +195,38 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     private fun render() {
         setText(mText)
+        setTextSize(getTextSize(size))
         setTextColor(mTextColor)
         setBackground(mBackgroundDrawable)
         setPadding(mPadding, 0, mPadding, 0)
-
-        val textSize = when (size) {
-            1 -> textSmall
-            else -> textNormal
-        }
-
-        setTextSize(textSize.toFloat())
 
         requestLayout()
     }
 
     private fun getWidthSize(mSize: Int): Int {
         return when (mSize) {
-            1 -> widthSmall
-            else -> widthNormal
+            SIZE_SMALL -> WIDTH_SMALL
+            else -> WIDTH_NORMAL
         }
     }
 
     private fun getHeightSize(mSize: Int): Int {
         return when (mSize) {
-            1 -> heightSmall
-            else -> heightNormal
+            SIZE_SMALL -> HEIGHT_SMALL
+            else -> HEIGHT_NORMAL
         }
     }
 
-    /* Debugging purpose. TODO: Remove when works */
+    private fun getTextSize(mSize: Int): Float {
+        return when (mSize) {
+            SIZE_SMALL -> TEXT_SMALL
+            else -> TEXT_NORMAL
+        }.toFloat()
+    }
+
+    /* debug the bug. */
     private fun log(tag: String, value: String) {
-        Log.d("FollowButton.$tag", value)
+        if (DEBUG)
+            Log.d("FollowButton.$tag", value)
     }
 }
