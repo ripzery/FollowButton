@@ -12,7 +12,7 @@ import kotlin.reflect.KProperty
 
 /**
  * I hate the nested layout. I hate the inconsistency button properties.
- * So instead of doing a 2-minutes nested layout, I want to spend my too much time by doing a 2-hours custom view.
+ * So instead of doing a 2-minutes nested layout, I want to spend my too much time *sarcasm* by doing a 2-hours custom view.
  * Most importantly, it sparks joy.
  */
 class FollowButton : AppCompatButton, View.OnClickListener {
