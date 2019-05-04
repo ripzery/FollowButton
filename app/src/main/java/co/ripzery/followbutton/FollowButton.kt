@@ -219,8 +219,8 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     private fun getTextSize(mSize: Int): Float {
         return when (mSize) {
-            SIZE_SMALL -> pxOf(TEXT_SMALL)
-            else -> pxOf(TEXT_NORMAL)
+            SIZE_SMALL -> TEXT_SMALL
+            else -> TEXT_NORMAL
         }.toFloat()
     }
 
