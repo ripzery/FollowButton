@@ -10,7 +10,6 @@
     <co.ripzery.followbutton.FollowButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
             app:followed="true"
             app:size="normal"
             app:layout_constraintBottom_toBottomOf="parent"

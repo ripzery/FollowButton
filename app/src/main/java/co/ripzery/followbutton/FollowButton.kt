@@ -134,10 +134,10 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
         when (to) {
             SIZE_SMALL -> {
-                minHeight = HEIGHT_SMALL
-                minimumHeight = HEIGHT_SMALL
-                minWidth = WIDTH_SMALL
-                minimumWidth = WIDTH_SMALL
+                minHeight = pxOf(HEIGHT_SMALL)
+                minimumHeight = pxOf(HEIGHT_SMALL)
+                minWidth = pxOf(WIDTH_SMALL)
+                minimumWidth = pxOf(WIDTH_SMALL)
             }
             else -> {
                 minHeight = suggestedMinimumHeight
@@ -159,10 +159,10 @@ class FollowButton : AppCompatButton, View.OnClickListener {
         mWidth = getWidthSize(mSize)
 
         mPadding = when {
-            mFollowed && mSize == 0 -> PADDING_EXPANDED
-            mFollowed && mSize == 1 -> PADDING_SMALL_EXPANDED
-            !mFollowed && mSize == 0 -> PADDING
-            else -> PADDING_SMALL
+            mFollowed && mSize == 0 -> pxOf(PADDING_EXPANDED)
+            mFollowed && mSize == 1 -> pxOf(PADDING_SMALL_EXPANDED)
+            !mFollowed && mSize == 0 -> pxOf(PADDING)
+            else -> pxOf(PADDING_SMALL)
         }
     }
 
@@ -205,24 +205,26 @@ class FollowButton : AppCompatButton, View.OnClickListener {
 
     private fun getWidthSize(mSize: Int): Int {
         return when (mSize) {
-            SIZE_SMALL -> WIDTH_SMALL
-            else -> WIDTH_NORMAL
+            SIZE_SMALL -> pxOf(WIDTH_SMALL)
+            else -> pxOf(WIDTH_NORMAL)
         }
     }
 
     private fun getHeightSize(mSize: Int): Int {
         return when (mSize) {
-            SIZE_SMALL -> HEIGHT_SMALL
-            else -> HEIGHT_NORMAL
+            SIZE_SMALL -> pxOf(HEIGHT_SMALL)
+            else -> pxOf(HEIGHT_NORMAL)
         }
     }
 
     private fun getTextSize(mSize: Int): Float {
         return when (mSize) {
-            SIZE_SMALL -> TEXT_SMALL
-            else -> TEXT_NORMAL
+            SIZE_SMALL -> pxOf(TEXT_SMALL)
+            else -> pxOf(TEXT_NORMAL)
         }.toFloat()
     }
+
+    private fun pxOf(dp: Int) = dp.px
 
     /* debug the bug. */
     private fun log(tag: String, value: String) {
